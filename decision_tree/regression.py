@@ -10,6 +10,20 @@ class TreeNode:
         self.left = left            # left branch for (x < s)
         self.right = right          # right branch for (x >= s)
 
+    def __str__(self):
+        if self.feature is None:
+            return f'v={self.value}'
+        return (
+            f'feat={self.feature}, t={self.threshold}, '
+            f'l=({self.left}), r=({self.right})'
+        )
+
+    def __repr__(self):
+        return (
+            f'TreeNode(feature={self.feature}, threshold={self.threshold}, value={self.value}, '
+            f'left={self.left}, right={self.right})'
+        )
+
 
 class RegressionTree:
     def __init__(self, X=None, y=None, depth=6, verbose=True):
@@ -70,9 +84,9 @@ class RegressionTree:
                 best_i = i
                 best_loss = loss
                 best_loss_0, best_loss_1 = loss_0, loss_1
-        s = xyi[i][0]  # split point
-        y_R0 = cumsum_y[i] / i if i > 0 else 0.        # left leaf value
-        y_R1 = (cumsum_y[-1] - cumsum_y[i]) / (n - i)  # right leaf value
+        s = xyi[best_i][0]  # split point
+        y_R0 = cumsum_y[best_i] / best_i if best_i > 0 else 0.   # left leaf value
+        y_R1 = (cumsum_y[-1] - cumsum_y[best_i]) / (n - best_i)  # right leaf value
         R0 = [xyi[i][2] for i in range(best_i)]
         R1 = [xyi[i][2] for i in range(best_i, n)]
         return best_loss, s, y_R0, y_R1, R0, R1, best_loss_0, best_loss_1
@@ -116,8 +130,6 @@ class RegressionTree:
             X = np.array(X)
         if len(X.shape) != 2:
             raise ValueError("X needs to be 2D")
-        if len(y.shape) != 1:
-            raise ValueError("X needs to be 1D")
         self.features = range(len(X[0]))
         self.n_features = len(self.features)
 
@@ -183,10 +195,11 @@ class RegressionTree:
 
 
 if __name__ == '__main__':
+    np.random.seed(123)
     model = RegressionTree(depth=8)
     X = np.random.random_sample((1000, 10))
     y = np.random.random_sample(1000) * 5
     print('Training the regression decision tree...')
-    model.fit(X, y)
+    model.fit(X, y)                                        # 1.190281864434999
     print('Finished training.')
-    print('Evaluation loss (MSE):', model.evaluate(X, y))
+    print('Evaluation loss (MSE):', model.evaluate(X, y))  # 1.190281864435004
